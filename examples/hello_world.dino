@@ -1,0 +1,7 @@
+// hello_world example
+
+dino Hello {
+  species: "Diplodocus"
+  color: "Green"
+  strength: 1
+}
