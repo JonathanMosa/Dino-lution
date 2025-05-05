@@ -1,0 +1,40 @@
+// complex2.dino
+
+// 1 Declare two dinos with starting food
+dino Alpha {
+  species: "Alpha"
+  color: "Green"
+  strength: 2
+  food: 5
+}
+dino Beta {
+  species: "Beta"
+  color: "Blue"
+  strength: 3
+  food: 6
+}
+
+// 2 Five-round training: tick, unconditional feed, then buff strength
+repeat 5 times {
+  tick 1
+
+  // Always feed so they never starve
+  feed(Alpha, "berries")
+  feed(Beta,  "leaves")
+
+  // Mutate strength each round
+  mutate(Alpha, mutate(strength, +1))
+  mutate(Beta,  mutate(strength, +2))
+
+  // At each strengths, change their colors
+  if Alpha.strength == 5 { mutate(Alpha, mutate(color, "Yellow")) }
+  if Beta.strength  == 9 { mutate(Beta,  mutate(color, "Orange")) }
+}
+
+// 3 Breed the trained dinos, boosting child strength
+breed(Alpha, Beta) {
+  mutate(strength, +4)
+}
+
+// 4 Final print out the new child by feeding it (shows traits)
+feed(Alpha_Beta_child, "treat")
