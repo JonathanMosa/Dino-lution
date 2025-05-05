@@ -1,0 +1,108 @@
+// -------------------------
+// Dino-lution Grammar
+// -------------------------
+
+Program:
+    (Comment | statements+=Statement)
+;
+
+Comment:
+    /\/\/.*$/
+;
+
+Statement:
+    DinoDecl
+  | FunctionDecl
+  | ActionStmt
+  | ControlStmt
+  | TickStmt
+;
+
+TickStmt:
+    'tick' count=INT
+;
+
+// ——— Dino Declaration ———
+DinoDecl:
+    'dino' name=ID '{'
+        traits+=Trait
+        ( 'food' ':' initFood=INT )?    // optional override
+    '}'
+;
+
+// ——— Trait Property ———
+Trait:
+    name=ID ':' value=Value
+;
+
+// ——— Function Declaration ———
+FunctionDecl:
+    'function' name=ID '(' 'dino' param=ID ')' '{'
+        statements+=Statement
+    '}'
+;
+
+// ——— Action Statements ———
+ActionStmt:
+    FeedStmt
+  | MutateStmt
+  | BreedStmt
+;
+
+FeedStmt:
+    'feed' '(' target=ID ',' food=STRING ')'
+;
+
+MutateStmt:
+    'mutate' '(' target=ID ',' mutation=MutationExpr ')'
+;
+
+BreedStmt:
+    'breed' '(' parent1=ID ',' parent2=ID ')' breedBlock=BreedBlock
+;
+
+BreedBlock:
+    '{' mutations+=MutationExpr* '}'
+;
+
+MutationExpr:
+    'mutate' '(' trait=ID ',' (op=MutationOp? value=Value) ')'
+;
+
+MutationOp:
+    '+' | '-' | '='
+;
+
+// ——— Control Structures ———
+ControlStmt:
+    IfStmt
+  | RepeatStmt
+;
+
+IfStmt:
+    'if' condition=Condition block=Block
+    ( 'else' elseBlock=Block )?
+;
+
+RepeatStmt:
+    'repeat' count=Value 'times' block=Block
+;
+
+Condition:
+    dino=ID '.' trait=ID op=CompOp value=Value
+;
+
+CompOp:
+    '>' | '<' | '>=' | '<=' | '==' | '!='
+;
+
+Block:
+    '{' statements+=Statement* '}'
+;
+
+// ——— Values ———
+Value:
+    INT
+  | STRING
+  | 'random'
+;
