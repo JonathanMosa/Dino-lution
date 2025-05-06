@@ -19,9 +19,25 @@ A simple program that defines a single dino (Sunny) and feeds it twice. Shows ho
 
 * breed_example.dino:
 
+A minimal breeding scenario with two parent dinos, demonstrating genotype inheritance and phenotype expression.
+
 ![Image](https://github.com/user-attachments/assets/0ec5a192-d6fa-46a6-bc0b-9737e23f1b46)
 
 * breed_example output:
+
+* Parents Creation:
+ - A: strength=4, color=Blue
+ - B: strength=6, color=Red
+* Breeding (breed(A, B)):
+ - Genotype: Each trait inherits one allele from each parent:
+    -species: ["Raptor", "Raptor"]
+    -color:   ["Blue", "Red"]
+    -strength: [4, 6]
+ -Phenotype Expression:
+    -species: always "Raptor"
+    -color: picks the first matching in [Red, Green, etc] ordering
+    -strength: average of [4,6] → 5
+ -Child Creation: A new dino A_B_child appears with traits {species: Raptor, color: Red, strength: 5} and default food=10.
 
 ![Image](https://github.com/user-attachments/assets/718de8c9-4cef-427e-a093-bb8be92c03a1)
 
