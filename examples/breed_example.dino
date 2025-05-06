@@ -1,5 +1,0 @@
-// breed example
-dino A { species: "Raptor" color: "Blue" strength: 4 }
-dino B { species: "Raptor" color: "Red"  strength: 6 }
-
-breed(A, B) { }
