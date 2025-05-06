@@ -3,21 +3,23 @@
 // -------------------------
 
 Program:
-    (Comment | statements+=Statement)
+    ( Comment| statements+=Statement)
 ;
 
 Comment:
     /\/\/.*$/
 ;
 
+// Top‐level statements
 Statement:
-    DinoDecl
-  | FunctionDecl
-  | ActionStmt
-  | ControlStmt
-  | TickStmt
+      DinoDecl
+    | FunctionDecl
+    | ActionStmt
+    | ControlStmt
+    | TickStmt
 ;
 
+// ——— Tick ———
 TickStmt:
     'tick' count=INT
 ;
@@ -26,31 +28,31 @@ TickStmt:
 DinoDecl:
     'dino' name=ID '{'
         traits+=Trait
-        ( 'food' ':' initFood=INT )?    // optional override
+        ( 'food' ':' initFood=INT )?
     '}'
 ;
 
-// ——— Trait Property ———
+// ——— Trait ———
 Trait:
     name=ID ':' value=Value
 ;
 
-// ——— Function Declaration ———
+// ——— Functions ———
 FunctionDecl:
     'function' name=ID '(' 'dino' param=ID ')' '{'
         statements+=Statement
     '}'
 ;
 
-// ——— Action Statements ———
+// ——— Actions ———
 ActionStmt:
-    FeedStmt
-  | MutateStmt
-  | BreedStmt
+      FeedStmt
+    | MutateStmt
+    | BreedStmt
 ;
 
 FeedStmt:
-    'feed' '(' target=ID ',' food=STRING ')'
+    'feed' '(' target=ID ',' food=Value ')'
 ;
 
 MutateStmt:
@@ -75,8 +77,8 @@ MutationOp:
 
 // ——— Control Structures ———
 ControlStmt:
-    IfStmt
-  | RepeatStmt
+      IfStmt
+    | RepeatStmt
 ;
 
 IfStmt:
@@ -85,11 +87,11 @@ IfStmt:
 ;
 
 RepeatStmt:
-    'repeat' count=Value 'times' block=Block
+    'repeat' count=Expr 'times' block=Block
 ;
 
 Condition:
-    dino=ID '.' trait=ID op=CompOp value=Value
+    left=Expr op=CompOp right=Expr
 ;
 
 CompOp:
@@ -100,9 +102,18 @@ Block:
     '{' statements+=Statement* '}'
 ;
 
-// ——— Values ———
+// ——— Expressions & Values ———
+Expr:
+    head=Value (binop=BinOp right=Value)*
+;
+
 Value:
-    INT
-  | STRING
-  | 'random'
+      INT
+    | STRING
+    | 'random'
+    | ID '.' ID     // e.g. Counter.strength
+;
+
+BinOp:
+    '+' | '-' | '*' | '/' | '%'
 ;
