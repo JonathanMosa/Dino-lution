@@ -28,15 +28,31 @@ A simple program that defines a single dino (Sunny) and feeds it twice. Shows ho
 
 * complex_example.dino:
 
-A more complex scenario with three dinos. Demonstrates:
+A multi-step scenario involving three dinos: Spike, Alpha, and Beta.
 
-* Loops (repeat ... times) combined with tick and conditional feed to sustain dinos.
-* Feeding multiple dinos.
-* Breeding with trait mutations.
-* Final tick and feed to observe post-breeding status.
+1.) Initialization: Three dinos are created with different starting strength and food levels.
+
+2.) Survival Loop (repeat 3 times):
+* Feed Spike before time passes, boosting its strength and food (capped at MAX_FOOD).
+* Tick 1 decrements all dinos’ food by 1. Since Alpha and Beta are never fed in the loop, they drop below zero and die on the first tick. Spike survives because it was fed first.
+* Conditional Feed checks if Spike’s food < 6 and tops off if needed (never triggered after iteration 1).
+
+3.) Post-loop Feeding: Alpha and Beta have already died, so subsequent feed calls for them produce error messages. Only Spike remains.
+
+4.) Breeding Attempts: Three breed statements run in sequence, but since Alpha and Beta are dead, each prints a “parents not found” error.
+
+5.) Final Tick & Feed:
+* tick 5 further reduces Spike’s food over five time units.
+* A final feed(Spike, "plants") replenishes Spike so it ends the program alive.
 
 ![Image](https://github.com/user-attachments/assets/3fb2be7b-4d59-493b-88c2-16d857caba97)
 
 * complex_example output:
 
 ![Image](https://github.com/user-attachments/assets/6c5ba9f4-006f-4d3e-ae31-71074b28fe64)
+
+* Lines 1–10: Dino declarations and creation logs.
+* Lines 12–22: Loop iterations showing feed → tick → conditional, with Alpha/Beta starvations.
+* Lines 24–26: Errors when feeding dead dinos.
+* Lines 28–36: Errors for breeding dead parents.
+* Lines 38–44: Final tick and feed sequence for Spike.
