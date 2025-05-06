@@ -5,3 +5,7 @@ Dino-lution is a domain-specific language for simulating and interacting with vi
 * Example ".dino" programs that show off features like loops, feeding, mutation, and breeding.
 
 # Programs
+* feed_example.dino:
+
+
+* feed_example output:
