@@ -26,18 +26,18 @@ A minimal breeding scenario with two parent dinos, demonstrating genotype inheri
 * breed_example output:
 
 * Parents Creation:
-  -A: strength=4, color=Blue
+  - A: strength=4, color=Blue
   - B: strength=6, color=Red
 * Breeding (breed(A, B)):
   - Genotype: Each trait inherits one allele from each parent:
-     -species: ["Raptor", "Raptor"]
-     -color:   ["Blue", "Red"]
-     -strength: [4, 6]
+     - species: ["Raptor", "Raptor"]
+     - color:   ["Blue", "Red"]
+     - strength: [4, 6]
   -Phenotype Expression:
-     -species: always "Raptor"
-     -color: picks the first matching in [Red, Green, etc] ordering
-     -strength: average of [4,6] → 5
-  -Child Creation: A new dino A_B_child appears with traits {species: Raptor, color: Red, strength: 5} and default food=10.
+     - species: always "Raptor"
+     - color: picks the first matching in [Red, Green, etc] ordering
+     - strength: average of [4,6] → 5
+  - Child Creation: A new dino A_B_child appears with traits {species: Raptor, color: Red, strength: 5} and default food=10.
 
 ![Image](https://github.com/user-attachments/assets/718de8c9-4cef-427e-a093-bb8be92c03a1)
 
