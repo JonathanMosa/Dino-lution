@@ -1,0 +1,10 @@
+// feed example
+dino Sunny {
+  species: "Stegosaurus"
+  color: "Yellow"
+  strength: 3
+  food: 5
+}
+
+feed(Sunny, "plants")
+feed(Sunny, "plants")
