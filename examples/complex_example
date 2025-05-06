@@ -1,0 +1,53 @@
+// complex example
+
+dino Spike {
+  species: "Stegosaurus"
+  color: "Green"
+  strength: 7
+  food: 6
+}
+
+dino Alpha {
+  species: "Velociraptor"
+  color: "Red"
+  strength: 6
+  food: 5
+}
+
+dino Beta {
+  species: "Velociraptor"
+  color: "Blue"
+  strength: 8
+  food: 7
+}
+
+// Every loop we feed Spike first, then tick, then possibly feed again
+repeat 3 times {
+  feed(Spike, "plants")   // top‐up before time passes
+  tick 1                  // consume 1 unit
+  if Spike.food < 6 {     // if that left you under 6, top up again
+    feed(Spike, "plants")
+  }
+}
+
+// Feed everyone
+feed(Alpha, "meat")
+feed(Beta, "meat")
+
+// Breed all pairs
+breed(Alpha, Beta) {
+  mutate(strength, +3)
+}
+
+breed(Beta, Alpha) {
+  mutate(color, "Green")
+}
+
+breed(Alpha, Beta) {
+  mutate(strength, +2)
+  mutate(color, random)
+}
+
+// Final status:
+tick 5
+feed(Spike, "plants")
