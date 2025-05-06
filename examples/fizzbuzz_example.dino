@@ -1,0 +1,23 @@
+dino Counter {
+  species: "Counter"
+  color: "Blue"
+  strength: 1
+  food: 1
+}
+
+repeat 100 times {
+  if Counter.strength % 15 == 0 {
+    feed(Counter, "FizzBuzz")
+  } else {
+    if Counter.strength % 3 == 0 {
+      feed(Counter, "Fizz")
+    } else {
+      if Counter.strength % 5 == 0 {
+        feed(Counter, "Buzz")
+      } else {
+        feed(Counter, Counter.strength)
+      }
+    }
+  }
+  mutate(Counter, mutate(strength, +1))
+}
