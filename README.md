@@ -5,14 +5,6 @@ Dino-lution is a domain-specific language for simulating and interacting with vi
 * Example ".dino" programs that show off features like loops, feeding, mutation, and breeding.
 
 # Programs
-* helloworld_example.dino:
-
-![Image](https://github.com/user-attachments/assets/526bad60-8405-4b6d-a41f-d25252899f30)
-
-* helloworld_example output:
-
-![Image](https://github.com/user-attachments/assets/d98aea2c-3d2a-4d51-8698-fde21b6892ce)
-
 
 * feed_example.dino:
 
@@ -39,16 +31,3 @@ Dino-lution is a domain-specific language for simulating and interacting with vi
 * complex_example output:
 
 ![Image](https://github.com/user-attachments/assets/6c5ba9f4-006f-4d3e-ae31-71074b28fe64)
-
-
-* fizzbuzz_example.dino:
-
-![Image](https://github.com/user-attachments/assets/b8be32ec-d323-42e5-a6b8-60e85e102f9b)
-
-* fizzbuzz_example output:
-
-![Image](https://github.com/user-attachments/assets/0d5ef6e6-abe8-4b4d-99e3-81133337f396)
-
-![Image](https://github.com/user-attachments/assets/b83158b9-9fce-46b6-8fa5-f6d9d670a710)
-
-![Image](https://github.com/user-attachments/assets/27750da2-c406-4e8d-97fc-d6878af4fd83)
