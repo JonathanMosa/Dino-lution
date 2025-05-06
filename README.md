@@ -1,5 +1,7 @@
 # Dino-lution
-Dino-lution is a domain-specific language for simulating and interacting with virtual dinosaurs. In this repository is:
+Dino-lution is a domain-specific language for simulating and interacting with virtual dinosaurs. Programs start by declaring named dinos with traits like species, color, strength, and food. Time is indicated through a 'tick' statement that decrease each dino’s food. The 'feed' actions can restore this food and boost the strenght trait. You can mutate traits directly using mutate statement or breed pairs of dinos to inherit and combine parental alleles into a new child. 
+
+In this repository is:
 * dinolution.tx: The TextX grammar defining the language syntax.
 * dinolution_interpreter.py: The python interpreter that parses and executes the .dino programs.
 * Example ".dino" programs that show off features like loops, feeding, mutation, and breeding.
