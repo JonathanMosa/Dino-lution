@@ -1,251 +1,279 @@
+# dino_interpreter.py
 from textx import metamodel_from_file
 import sys
 import random
 
-# MAX_FOOD limits how full a dino's food bar can get
+# Maximum food a dino can have
 MAX_FOOD = 10
 
-# Load the grammar and build the metamodel
-mm = metamodel_from_file('dinolution.tx')  # metamodel file must match your grammar
-
-# Domain class for representing each dinosaur in the simulation
-def class_repr(dino):
-    return f"Dino(name='{dino.name}', traits={dino.traits}, food={dino.food})"
+# Load the TextX metamodel from the grammar file
+mm = metamodel_from_file('dinolution.tx')
 
 class Dino:
+    """
+    Simple Dino class representing a dinosaur in our simulation.
+    """
     def __init__(self, name, traits, food=10):
-        # Basic metadata
         self.name = name
-        self.traits = traits      # dict: trait_name -> value
-        self.genotype = {}        # store inherited alleles during breeding
-        self.food = food          # current food level
-        self.alive = True         # alive status flag
+        self.traits = traits  # a dict of trait_name -> value
+        self.food = food      # current food level
+        self.genotype = {}    # stores alleles after breeding
+        self.alive = True     # alive status
 
     def __repr__(self):
-        return class_repr(self)
+        return "Dino(name='{}', traits={}, food={})".format(
+            self.name, self.traits, self.food
+        )
 
 class DinoInterpreter:
+    """
+    A basic interpreter for Dino-lution programs.
+    Written in a straightforward style, like a junior CS student.
+    """
     def __init__(self):
-        # Environment holds all dinos and functions in scope
-        self.env = {
-            'dinos': {},         # name -> Dino instance
-            'functions': {}      # name -> FunctionDecl AST node
-        }
-        print("✨ DinoInterpreter initialized")  # debug print
+        # Environment: dinos and functions
+        self.dinos = {}       # name -> Dino
+        self.functions = {}   # name -> FunctionDecl node
+        # Expression class from metamodel for eval
+        self.Expr = mm['Expr']
+        print("✨ DinoInterpreter initialized")
 
     def run(self, model):
-        # Entry point: visit every top-level statement
+        """Run the program (model) loaded by TextX."""
         print("➡️ Starting program execution...")
         for stmt in model.statements:
-            self.visit(stmt)
+            self.execute(stmt)
         print("✅ Program execution complete")
 
-    def visit(self, node):
-        # Dispatch based on node class name
-        method_name = 'visit_' + node.__class__.__name__
-        visitor = getattr(self, method_name, self.generic_visit)
-        return visitor(node)
-
-    def generic_visit(self, node):
-        # Called if no explicit visitor method is found
-        raise NotImplementedError(f"No visitor method for {node.__class__.__name__}")
-
-    def visit_Program(self, program):
-        # Program node is just a container for statements
-        print(f"📜 Program contains {len(program.statements)} statements")
-        for stmt in program.statements:
-            self.visit(stmt)
-
-    def visit_DinoDecl(self, decl):
-        # Create a new Dino from its declaration
-        traits = {}
-        for t in decl.traits:
-            traits[t.name] = self._parse_value(t.value)
-        new_dino = Dino(decl.name, traits)
-        self.env['dinos'][decl.name] = new_dino
-        # Pretty-print the DSL form back to the console
-        print(f"dino {decl.name} {{")
-        for t in decl.traits:
-            print(f"  {t.name}: {t.value}")
-        print("}")
-        print(f"🦖 Created {new_dino}")
-
-    def visit_FeedStmt(self, stmt):
-        # Feed action: refuel food bar and buff strength
-        dino_name = stmt.target
-        if dino_name not in self.env['dinos']:
-            print(f"❌ Error: Dino '{dino_name}' does not exist or is dead.")
-            return
-        current_dino = self.env['dinos'][dino_name]
-        food_item = self._parse_value(stmt.food)
-        print(f"🛠 Feeding {dino_name} with {food_item}")
-        # Increase strength by 1
-        old_strength = current_dino.traits.get('strength', 0)
-        current_dino.traits['strength'] = old_strength + 1
-        print(f"  strength: {old_strength} → {current_dino.traits['strength']}")
-        # Refuel food bar
-        old_food = current_dino.food
-        # cap at MAX_FOOD
-        current_dino.food = min(current_dino.food + 5, MAX_FOOD)
-        print(f"  food: {old_food} → {current_dino.food}")
-
-    def visit_TickStmt(self, stmt):
-        # Tick action: advance time and decrease food levels
-        print(f"⏱ Ticking {stmt.count} time(s)")
-        for _ in range(stmt.count):
-            # copy keys so we can delete while iterating
-            for name, dino in list(self.env['dinos'].items()):
-                if not dino.alive:
-                    continue  # skip dead dinos
-                dino.food -= 1
-                print(f"  Tick: {name}.food → {dino.food}")
-                if dino.food <= 0:
-                    dino.alive = False
-                    del self.env['dinos'][name]
-                    print(f"💀 {name} has starved to death.")
-
-    def visit_MutateStmt(self, stmt):
-        # Mutate action: apply a change to a trait
-        dino_name = stmt.target
-        if dino_name not in self.env['dinos']:
-            print(f"❌ Error: Dino '{dino_name}' does not exist.")
-            return
-        current_dino = self.env['dinos'][dino_name]
-        mut = stmt.mutation
-        op = mut.op or '='  # default assignment
-        trait = mut.trait
-        value = self._parse_value(mut.value, trait)
-        old_val = current_dino.traits.get(trait)
-        if old_val is None:
-            print(f"❌ Error: Trait '{trait}' not found on {dino_name}.")
-            return
-        # Compute new value
-        if op == '+':
-            new_val = old_val + value
-        elif op == '-':
-            new_val = old_val - value
-        elif op == '=':
-            new_val = value
+    def execute(self, node):
+        """Dispatch method based on node type."""
+        typ = node.__class__.__name__
+        if typ == 'Program':
+            self._handle_program(node)
+        elif typ == 'DinoDecl':
+            self._handle_dino_decl(node)
+        elif typ == 'FeedStmt':
+            self._handle_feed(node)
+        elif typ == 'TickStmt':
+            self._handle_tick(node)
+        elif typ == 'MutateStmt':
+            self._handle_mutate(node)
+        elif typ == 'BreedStmt':
+            self._handle_breed(node)
+        elif typ == 'FunctionDecl':
+            self._handle_function_decl(node)
+        elif typ == 'IfStmt':
+            self._handle_if(node)
+        elif typ == 'RepeatStmt':
+            self._handle_repeat(node)
         else:
-            print(f"❌ Unknown mutation operator '{op}'")
-            return
-        current_dino.traits[trait] = new_val
-        print(f"🔄 Mutating {dino_name}.{trait} {op}{value} → {old_val} → {new_val}")
+            print(f"⚠️ No handler for node type: {typ}")
 
-    def visit_BreedStmt(self, stmt):
-        # Breed action: create a new child dino
-        p1_name, p2_name = stmt.parent1, stmt.parent2
-        if p1_name not in self.env['dinos'] or p2_name not in self.env['dinos']:
-            print(f"❌ Error: One or both parents ('{p1_name}', '{p2_name}') not found.")
+    def _handle_program(self, program):
+        for s in program.statements:
+            self.execute(s)
+
+    def _handle_dino_decl(self, d):
+        # Collect traits
+        traits = {}
+        for t in d.traits:
+            traits[t.name] = self._parse_value(t.value)
+        # Initial food if given
+        start_food = getattr(d, 'initFood', 10)
+        dino = Dino(d.name, traits, start_food)
+        self.dinos[d.name] = dino
+        print(f"🦖 Created dino {dino}")
+
+    def _handle_feed(self, f):
+        name = f.target
+        if name not in self.dinos:
+            print(f"❌ Error: Dino '{name}' not found.")
             return
-        parent1 = self.env['dinos'][p1_name]
-        parent2 = self.env['dinos'][p2_name]
-        print(f"💑 Breeding {p1_name} x {p2_name}")
-        # 1) Inherit alleles
-        expressed = {}
+        d = self.dinos[name]
+        amount = self._parse_value(f.food)
+        print(f"🛠 Feeding {name} with {amount}")
+        # Increase strength and food
+        old_str = d.traits.get('strength', 0)
+        d.traits['strength'] = old_str + 1
+        print(f"  strength: {old_str} -> {d.traits['strength']}")
+        old_food = d.food
+        d.food = min(d.food + 5, MAX_FOOD)
+        print(f"  food: {old_food} -> {d.food}")
+
+    def _handle_tick(self, t):
+        count = int(t.count)
+        print(f"⏱ Ticking {count} time(s)")
+        for _ in range(count):
+            # Use list to avoid runtime change during iteration
+            for name in list(self.dinos.keys()):
+                d = self.dinos[name]
+                if not d.alive:
+                    continue
+                d.food -= 1
+                print(f"  {name}.food -> {d.food}")
+                if d.food <= 0:
+                    d.alive = False
+                    del self.dinos[name]
+                    print(f"💀 {name} has starved.")
+
+    def _handle_mutate(self, m):
+        name = m.target
+        if name not in self.dinos:
+            print(f"❌ Error: Dino '{name}' not found.")
+            return
+        d = self.dinos[name]
+        op = m.mutation.op or '='
+        trait = m.mutation.trait
+        val = self._parse_value(m.mutation.value)
+        old = d.traits.get(trait)
+        if old is None:
+            print(f"❌ Trait '{trait}' not on {name}.")
+            return
+        if op == '+': new = old + val
+        elif op == '-': new = old - val
+        else: new = val
+        d.traits[trait] = new
+        print(f"🔄 Mutated {name}.{trait} {op}{val}: {old} -> {new}")
+
+    def _handle_breed(self, b):
+        p1, p2 = b.parent1, b.parent2
+        if p1 not in self.dinos or p2 not in self.dinos:
+            print("❌ Error: Parents not found.")
+            return
+        print(f"💑 Breeding {p1} x {p2}")
+        d1 = self.dinos[p1]
+        d2 = self.dinos[p2]
+        child_traits = {}
         genotype = {}
-        for trait, val1 in parent1.traits.items():
-            val2 = parent2.traits.get(trait, val1)
-            # pick one allele each
-            a1 = random.choice(val1 if isinstance(val1, list) else [val1])
-            a2 = random.choice(val2 if isinstance(val2, list) else [val2])
-            genotype[trait] = [a1, a2]
-            # express phenotype
-            expressed[trait] = self._express_trait(trait, [a1, a2])
-        # 2) Apply mutations in breed block
-        for mut in stmt.breedBlock.mutations:
+        # Inherit traits
+        for tr in d1.traits:
+            v1 = d1.traits[tr]
+            v2 = d2.traits.get(tr, v1)
+            alleles1 = v1 if isinstance(v1, list) else [v1]
+            alleles2 = v2 if isinstance(v2, list) else [v2]
+            a1 = random.choice(alleles1)
+            a2 = random.choice(alleles2)
+            genotype[tr] = [a1, a2]
+            child_traits[tr] = self._express_trait(tr, [a1, a2])
+        # Apply breed-time mutations
+        for mut in b.breedBlock.mutations:
             op = mut.op or '='
-            val = self._parse_value(mut.value, mut.trait)
-            old = expressed.get(mut.trait)
+            tr2 = mut.trait
+            vv = self._parse_value(mut.value)
+            old = child_traits.get(tr2)
             if isinstance(old, (int, float)):
-                if op == '+': new = old + val
-                elif op == '-': new = old - val
-                else: new = val
-                expressed[mut.trait] = new
-                print(f"  Breed-mutate {mut.trait} {op}{val} → {old} → {new}")
+                if op == '+': new = old + vv
+                elif op == '-': new = old - vv
+                else: new = vv
             else:
-                if op == '=':
-                    expressed[mut.trait] = val
-                    print(f"  Breed-mutate {mut.trait} = {val}")
-        # 3) Create and register child
-        child_name = f"{p1_name}_{p2_name}_child"
-        child = Dino(child_name, expressed)
+                new = vv
+            child_traits[tr2] = new
+            print(f"  Breed-mutate {tr2} {op}{vv}: {old} -> {new}")
+        # Create child dino
+        child_name = f"{p1}_{p2}_child"
+        child = Dino(child_name, child_traits)
         child.genotype = genotype
-        self.env['dinos'][child_name] = child
-        print(f"🌟 Bred new dino {child}")
+        self.dinos[child_name] = child
+        print(f"🌟 New dino {child}")
         print(f"  Genotype: {genotype}")
 
-    def visit_FunctionDecl(self, stmt):
-        # Register a user-made function
-        fname = stmt.name
-        self.env['functions'][fname] = stmt
-        print(f"🔖 Registered function '{fname}'")
+    def _handle_function_decl(self, fn):
+        self.functions[fn.name] = fn
+        print(f"🔖 Function declared: {fn.name}")
 
-    def visit_IfStmt(self, stmt):
-        # Conditional execution
-        cond = stmt.condition
-        result = self._eval_condition(cond)
-        print(f"🔍 If {cond.dino}.{cond.trait} {cond.op} {cond.value} → {result}")
-        if result:
-            for s in stmt.block.statements:
-                self.visit(s)
-        elif hasattr(stmt, 'elseBlock') and stmt.elseBlock:
-            print("🔄 Entering else block")
-            for s in stmt.elseBlock.statements:
-                self.visit(s)
+    def _handle_if(self, i):
+        left = self._eval_expr(i.condition.left)
+        right = self._eval_expr(i.condition.right)
+        op = i.condition.op
+        cond = False
+        # Simple comparison
+        if op == '==': cond = (left == right)
+        elif op == '!=': cond = (left != right)
+        elif op == '>': cond = (left > right)
+        elif op == '<': cond = (left < right)
+        elif op == '>=': cond = (left >= right)
+        elif op == '<=': cond = (left <= right)
+        print(f"🔍 If {left} {op} {right} -> {cond}")
+        if cond:
+            for s in i.block.statements:
+                self.execute(s)
+        elif hasattr(i, 'elseBlock') and i.elseBlock:
+            for s in i.elseBlock.statements:
+                self.execute(s)
 
-    def visit_RepeatStmt(self, stmt):
-        # Loop execution
-        times = self._parse_value(stmt.count)
+    def _handle_repeat(self, r):
+        times = self._eval_expr(r.count)
         print(f"🔁 Repeat {times} times")
-        for i in range(times):
-            print(f"  Iteration {i+1}")
-            for s in stmt.block.statements:
-                self.visit(s)
+        for idx in range(times):
+            print(f"  Iteration {idx + 1}")
+            for s in r.block.statements:
+                self.execute(s)
 
-    def _eval_condition(self, cond):
-        dino_obj = self.env['dinos'].get(cond.dino)
-        if not dino_obj:
-            print(f"❌ Error: Dino '{cond.dino}' not found for condition")
-            return False
-        left = dino_obj.traits.get(cond.trait)
-        right = self._parse_value(cond.value)
-        return eval(f"{left} {cond.op} {right}")
+    def _eval_expr(self, expr):
+        """Recursively evaluate Expr nodes or simple values."""
+        # Handle Expr from metamodel
+        if isinstance(expr, self.Expr):
+            value = self._eval_expr(expr.head)
+            for op, r in zip(expr.binop, expr.right):
+                right_val = self._eval_expr(r)
+                if op == '+': value += right_val
+                elif op == '-': value -= right_val
+                elif op == '*': value *= right_val
+                elif op == '/': value //= right_val
+                elif op == '%': value %= right_val
+            return value
+        # Integers
+        if isinstance(expr, int):
+            return expr
+        # Digit strings
+        if isinstance(expr, str) and expr.isdigit():
+            return int(expr)
+        # Variables or random
+        return self._resolve_variable(expr)
 
-    def _parse_value(self, raw, trait_name=None):
-        # Translate token to Python value
-        if isinstance(raw, str) and raw == 'random':
-            if trait_name == 'color':
-                return random.choice(['Red','Orange','Yellow','Green','Blue','Purple'])
-            return random.randint(1, 10)  # random stat
-        if isinstance(raw, str) and raw.startswith('"') and raw.endswith('"'):
-            return raw[1:-1]
+    def _resolve_variable(self, var):
+        """Resolve variables like DinoName.trait or raw values."""
+        if var == 'random':
+            return random.randint(1, 10)
+        if isinstance(var, str) and var.startswith('"'):
+            return var.strip('"')
+        if isinstance(var, str) and '.' in var:
+            name, tr = var.split('.')
+            if name in self.dinos and tr in self.dinos[name].traits:
+                return self.dinos[name].traits[tr]
+            else:
+                raise ValueError(f"Unknown variable {var}")
+        # Fallback
         try:
-            return int(raw)
-        except (ValueError, TypeError):
-            return raw
+            return int(var)
+        except:
+            return var
+
+    def _parse_value(self, v):
+        """Parse raw values from the AST (int, string, random)."""
+        if v == 'random':
+            return random.randint(1, 10)
+        if isinstance(v, str) and v.isdigit():
+            return int(v)
+        if isinstance(v, str) and v.startswith('"'):
+            return v.strip('"')
+        return v
 
     def _express_trait(self, trait, alleles):
-        # Decide phenotype from two alleles
+        """Simple genetic expression rules."""
         if trait == 'color':
-            # Dominance order for colors
-            order = ['Red','Green','Blue','Yellow','Orange','Purple']
-            for c in order:
+            # Prioritize known colors
+            for c in ['Red','Green','Blue','Yellow','Orange','Purple']:
                 if c in alleles:
                     return c
-            return alleles[0]
         if trait == 'strength':
             return sum(alleles) // len(alleles)
-        # default: pick first allele
         return alleles[0]
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("Usage: python dino.py <model_file>")
+        print("Usage: python dino_interpreter.py <model_file>")
         sys.exit(1)
-    file_path = sys.argv[1]
-    # Parse the model from the .dino file
-    program_model = mm.model_from_file(file_path)
-    # Create interpreter and run
+    model = mm.model_from_file(sys.argv[1])
     interp = DinoInterpreter()
-    interp.run(program_model)
+    interp.run(model)
