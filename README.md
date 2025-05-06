@@ -12,3 +12,12 @@ Dino-lution is a domain-specific language for simulating and interacting with vi
 * feed_example output:
 
 ![Image](https://github.com/user-attachments/assets/28e91843-23b1-4eb3-b942-efc8c9135c4a)
+
+
+* breed_example.dino:
+
+![Image](https://github.com/user-attachments/assets/0ec5a192-d6fa-46a6-bc0b-9737e23f1b46)
+
+* breed_example output:
+
+![Image](https://github.com/user-attachments/assets/718de8c9-4cef-427e-a093-bb8be92c03a1)
