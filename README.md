@@ -8,6 +8,8 @@ Dino-lution is a domain-specific language for simulating and interacting with vi
 
 * feed_example.dino:
 
+A simple program that defines a single dino (Sunny) and feeds it twice. Shows how the feed statement increases both strength and food (capped by MAX_FOOD).
+
 ![Image](https://github.com/user-attachments/assets/92dacb6b-038f-45b8-92de-93c6bb66fe9b)
 
 * feed_example output:
@@ -25,6 +27,13 @@ Dino-lution is a domain-specific language for simulating and interacting with vi
 
 
 * complex_example.dino:
+
+A more complex scenario with three dinos. Demonstrates:
+
+* Loops (repeat ... times) combined with tick and conditional feed to sustain dinos.
+* Feeding multiple dinos.
+* Breeding with trait mutations.
+* Final tick and feed to observe post-breeding status.
 
 ![Image](https://github.com/user-attachments/assets/3fb2be7b-4d59-493b-88c2-16d857caba97)
 
