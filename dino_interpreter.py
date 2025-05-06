@@ -1,4 +1,3 @@
-# dino_interpreter.py
 from textx import metamodel_from_file
 import sys
 import random
