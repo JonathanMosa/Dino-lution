@@ -38,17 +38,16 @@ class DinoInterpreter:
         print("✨ DinoInterpreter initialized")
 
     def run(self, model):
-        """Run the program (model) loaded by TextX."""
         print("➡️ Starting program execution...")
         for stmt in model.statements:
             self.execute(stmt)
         print("✅ Program execution complete")
 
     def execute(self, node):
-        """Dispatch method based on node type."""
         typ = node.__class__.__name__
         if typ == 'Program':
-            self._handle_program(node)
+            for s in node.statements:
+                self.execute(s)
         elif typ == 'DinoDecl':
             self._handle_dino_decl(node)
         elif typ == 'FeedStmt':
@@ -68,17 +67,16 @@ class DinoInterpreter:
         else:
             print(f"⚠️ No handler for node type: {typ}")
 
-    def _handle_program(self, program):
-        for s in program.statements:
-            self.execute(s)
-
     def _handle_dino_decl(self, d):
-        # Collect traits
         traits = {}
+        start_food = None
         for t in d.traits:
-            traits[t.name] = self._parse_value(t.value)
-        # Initial food if given
-        start_food = getattr(d, 'initFood', 10)
+            if t.name == 'food':
+                start_food = self._parse_value(t.value)
+            else:
+                traits[t.name] = self._parse_value(t.value)
+        if start_food is None:
+            start_food = 10
         dino = Dino(d.name, traits, start_food)
         self.dinos[d.name] = dino
         print(f"🦖 Created dino {dino}")
@@ -91,7 +89,6 @@ class DinoInterpreter:
         d = self.dinos[name]
         amount = self._parse_value(f.food)
         print(f"🛠 Feeding {name} with {amount}")
-        # Increase strength and food
         old_str = d.traits.get('strength', 0)
         d.traits['strength'] = old_str + 1
         print(f"  strength: {old_str} -> {d.traits['strength']}")
@@ -103,7 +100,6 @@ class DinoInterpreter:
         count = int(t.count)
         print(f"⏱ Ticking {count} time(s)")
         for _ in range(count):
-            # Use list to avoid runtime change during iteration
             for name in list(self.dinos.keys()):
                 d = self.dinos[name]
                 if not d.alive:
@@ -128,9 +124,9 @@ class DinoInterpreter:
         if old is None:
             print(f"❌ Trait '{trait}' not on {name}.")
             return
-        if op == '+': new = old + val
+        if op == '+':   new = old + val
         elif op == '-': new = old - val
-        else: new = val
+        else:           new = val
         d.traits[trait] = new
         print(f"🔄 Mutated {name}.{trait} {op}{val}: {old} -> {new}")
 
@@ -140,35 +136,26 @@ class DinoInterpreter:
             print("❌ Error: Parents not found.")
             return
         print(f"💑 Breeding {p1} x {p2}")
-        d1 = self.dinos[p1]
-        d2 = self.dinos[p2]
-        child_traits = {}
-        genotype = {}
-        # Inherit traits
+        d1, d2 = self.dinos[p1], self.dinos[p2]
+        child_traits, genotype = {}, {}
         for tr in d1.traits:
-            v1 = d1.traits[tr]
-            v2 = d2.traits.get(tr, v1)
-            alleles1 = v1 if isinstance(v1, list) else [v1]
-            alleles2 = v2 if isinstance(v2, list) else [v2]
-            a1 = random.choice(alleles1)
-            a2 = random.choice(alleles2)
+            v1, v2 = d1.traits[tr], d2.traits.get(tr, d1.traits[tr])
+            a1 = random.choice(v1 if isinstance(v1, list) else [v1])
+            a2 = random.choice(v2 if isinstance(v2, list) else [v2])
             genotype[tr] = [a1, a2]
             child_traits[tr] = self._express_trait(tr, [a1, a2])
-        # Apply breed-time mutations
         for mut in b.breedBlock.mutations:
-            op = mut.op or '='
-            tr2 = mut.trait
+            op, tr2 = mut.op or '=', mut.trait
             vv = self._parse_value(mut.value)
             old = child_traits.get(tr2)
             if isinstance(old, (int, float)):
                 if op == '+': new = old + vv
                 elif op == '-': new = old - vv
-                else: new = vv
+                else:           new = vv
             else:
                 new = vv
             child_traits[tr2] = new
             print(f"  Breed-mutate {tr2} {op}{vv}: {old} -> {new}")
-        # Create child dino
         child_name = f"{p1}_{p2}_child"
         child = Dino(child_name, child_traits)
         child.genotype = genotype
@@ -181,19 +168,12 @@ class DinoInterpreter:
         print(f"🔖 Function declared: {fn.name}")
 
     def _handle_if(self, i):
-        left = self._eval_expr(i.condition.left)
-        right = self._eval_expr(i.condition.right)
-        op = i.condition.op
-        cond = False
-        # Simple comparison
-        if op == '==': cond = (left == right)
-        elif op == '!=': cond = (left != right)
-        elif op == '>': cond = (left > right)
-        elif op == '<': cond = (left < right)
-        elif op == '>=': cond = (left >= right)
-        elif op == '<=': cond = (left <= right)
-        print(f"🔍 If {left} {op} {right} -> {cond}")
-        if cond:
+        # Evaluate the entire expression
+        result = bool(self._eval_expr(i.condition))
+        # Format it back to a string
+        expr_str = self._format_expr(i.condition)
+        print(f"🔍 If {expr_str} -> {result}")
+        if result:
             for s in i.block.statements:
                 self.execute(s)
         elif hasattr(i, 'elseBlock') and i.elseBlock:
@@ -210,28 +190,34 @@ class DinoInterpreter:
 
     def _eval_expr(self, expr):
         """Recursively evaluate Expr nodes or simple values."""
-        # Handle Expr from metamodel
         if isinstance(expr, self.Expr):
-            value = self._eval_expr(expr.head)
-            for op, r in zip(expr.binop, expr.right):
-                right_val = self._eval_expr(r)
-                if op == '+': value += right_val
-                elif op == '-': value -= right_val
-                elif op == '*': value *= right_val
-                elif op == '/': value //= right_val
-                elif op == '%': value %= right_val
-            return value
-        # Integers
+            val = self._eval_expr(expr.head)
+            for op, nxt in zip(expr.binop, expr.right):
+                rv = self._eval_expr(nxt)
+                if   op == '+': val += rv
+                elif op == '-': val -= rv
+                elif op == '*': val *= rv
+                elif op == '/': val //= rv
+                elif op == '%': val %= rv
+            return val
         if isinstance(expr, int):
             return expr
-        # Digit strings
         if isinstance(expr, str) and expr.isdigit():
             return int(expr)
-        # Variables or random
         return self._resolve_variable(expr)
 
+    def _format_expr(self, expr):
+        """Reconstruct a user-friendly string from an Expr AST."""
+        if isinstance(expr, self.Expr):
+            s = self._format_expr(expr.head)
+            for op, nxt in zip(expr.binop, expr.right):
+                s += f" {op} {self._format_expr(nxt)}"
+            return s
+        else:
+            return str(expr)
+
     def _resolve_variable(self, var):
-        """Resolve variables like DinoName.trait or raw values."""
+        """Resolve DinoName.trait, 'random', or raw literals."""
         if var == 'random':
             return random.randint(1, 10)
         if isinstance(var, str) and var.startswith('"'):
@@ -242,14 +228,12 @@ class DinoInterpreter:
                 return self.dinos[name].traits[tr]
             else:
                 raise ValueError(f"Unknown variable {var}")
-        # Fallback
         try:
             return int(var)
         except:
             return var
 
     def _parse_value(self, v):
-        """Parse raw values from the AST (int, string, random)."""
         if v == 'random':
             return random.randint(1, 10)
         if isinstance(v, str) and v.isdigit():
@@ -259,9 +243,7 @@ class DinoInterpreter:
         return v
 
     def _express_trait(self, trait, alleles):
-        """Simple genetic expression rules."""
         if trait == 'color':
-            # Prioritize known colors
             for c in ['Red','Green','Blue','Yellow','Orange','Purple']:
                 if c in alleles:
                     return c
