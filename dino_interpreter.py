@@ -9,9 +9,6 @@ MAX_FOOD = 10
 mm = metamodel_from_file('dinolution.tx')
 
 class Dino:
-    """
-    Simple Dino class representing a dinosaur in our simulation.
-    """
     def __init__(self, name, traits, food=10):
         self.name = name
         self.traits = traits  # a dict of trait_name -> value
@@ -25,10 +22,6 @@ class Dino:
         )
 
 class DinoInterpreter:
-    """
-    A basic interpreter for Dino-lution programs.
-    Written in a straightforward style, like a junior CS student.
-    """
     def __init__(self):
         # Environment: dinos and functions
         self.dinos = {}       # name -> Dino
