@@ -62,7 +62,7 @@
           feed(Alpha, "meat")
           feed(Beta, "meat")
           
-          // Breed all pairs
+          // Breed pairs
           breed(Alpha, Beta) {
             mutate(strength, +3)
           }
@@ -78,58 +78,105 @@
           
           // Final status:
           tick 5
-          feed(Spike, "plants")        
+          feed(Spike, "plants")          
         </code>
       </pre>
       <h2>Output</h2>
-      <code>
-        ✨ DinoInterpreter initialized<br>
-        ➡️ Starting program execution...<br>
-        🦖 Created dino Dino(name='Spike', traits={'species': 'Stegosaurus', 'color': 'Green', 'strength': 7, 'food': 6}, food=0)<br>
-        🦖 Created dino Dino(name='Alpha', traits={'species': 'Velociraptor', 'color': 'Red', 'strength': 6, 'food': 5}, food=0)<br>
-        🦖 Created dino Dino(name='Beta', traits={'species': 'Velociraptor', 'color': 'Blue', 'strength': 8, 'food': 7}, food=0)<br>
-        🔁 Repeat 3 times<br>
-          Iteration 1<br>
-        🛠 Feeding Spike with plants<br>
-          strength: 7 -> 8<br>
-          food: 0 -> 5<br>
-    ⏱ Ticking 1 time(s)<br>
-      Spike.food -> 4<br>
-      Alpha.food -> -1<br>
-    💀 Alpha has starved.<br>
-      Beta.food -> -1<br>
-    💀 Beta has starved.<br>
-    🔍 If 6 < 6 -> False<br>
-      Iteration 2<br>
-    🛠 Feeding Spike with plants<br>
-      strength: 8 -> 9<br>
-      food: 4 -> 9<br>
-    ⏱ Ticking 1 time(s)<br>
-      Spike.food -> 8<br>
-    🔍 If 6 < 6 -> False<br>
-      Iteration 3<br>
-    🛠 Feeding Spike with plants<br>
-      strength: 9 -> 10<br>
-      food: 8 -> 10<br>
-    ⏱ Ticking 1 time(s)<br>
-      Spike.food -> 9<br>
-    🔍 If 6 < 6 -> False<br>
-    ❌ Error: Dino 'Alpha' not found.<br>
-    ❌ Error: Dino 'Beta' not found.<br>
-    ❌ Error: Parents not found.<br>
-    ❌ Error: Parents not found.<br>
-    ❌ Error: Parents not found.<br>
-    ⏱ Ticking 5 time(s)<br>
-      Spike.food -> 8<br>
-      Spike.food -> 7<br>
-      Spike.food -> 6<br>
-      Spike.food -> 5<br>
-      Spike.food -> 4<br>
-    🛠 Feeding Spike with plants<br>
-      strength: 10 -> 11<br>
-      food: 4 -> 9<br>
-    ✅ Program execution complete
-      </code>
+      <pre>
+        <code>
+✨ DinoInterpreter initialized
+➡️ Starting program execution...
+🦖 Created dino Dino(name='Spike', traits={'species': 'Stegosaurus', 'color': 'Green', 'strength': 7}, food=6)
+🦖 Created dino Dino(name='Alpha', traits={'species': 'Velociraptor', 'color': 'Red', 'strength': 6}, food=5) 
+🦖 Created dino Dino(name='Beta', traits={'species': 'Velociraptor', 'color': 'Blue', 'strength': 8}, food=7) 
+🔁 Repeat 3 times
+  Iteration 1
+🛠 Feeding Spike with plants
+  strength: 7 -> 8
+  food: 6 -> 10
+⏱ Ticking 1 time(s)
+  Spike.food -> 9
+  Alpha.food -> 4
+  Beta.food -> 6
+🔍 If <textx:dinolution.Condition instance at 0x23f55a0b440> -> True
+🛠 Feeding Spike with plants
+  strength: 8 -> 9
+  food: 9 -> 10
+  Iteration 2
+🛠 Feeding Spike with plants
+  strength: 9 -> 10
+  food: 10 -> 10
+⏱ Ticking 1 time(s)
+  Spike.food -> 9
+  Alpha.food -> 3
+  Beta.food -> 5
+🔍 If <textx:dinolution.Condition instance at 0x23f55a0b440> -> True
+🛠 Feeding Spike with plants
+  strength: 10 -> 11
+  food: 9 -> 10
+  Iteration 3
+🛠 Feeding Spike with plants
+  strength: 11 -> 12
+  food: 10 -> 10
+⏱ Ticking 1 time(s)
+  Spike.food -> 9
+  Alpha.food -> 2
+  Beta.food -> 4
+🔍 If <textx:dinolution.Condition instance at 0x23f55a0b440> -> True
+🛠 Feeding Spike with plants
+  strength: 12 -> 13
+  food: 9 -> 10
+🛠 Feeding Alpha with meat
+  strength: 6 -> 7
+  food: 2 -> 7
+🛠 Feeding Beta with meat
+  strength: 8 -> 9
+  food: 4 -> 9
+💑 Breeding Alpha x Beta
+  Breed-mutate strength +3: 8 -> 11
+🌟 New dino Dino(name='Alpha_Beta_child', traits={'species': 'Velociraptor', 'color': 'Red', 'strength': 11}, food=10)
+  Genotype: {'species': ['Velociraptor', 'Velociraptor'], 'color': ['Red', 'Blue'], 'strength': [7, 9]}
+💑 Breeding Beta x Alpha
+  Breed-mutate color =Green: Red -> Green
+🌟 New dino Dino(name='Beta_Alpha_child', traits={'species': 'Velociraptor', 'color': 'Green', 'strength': 8}, food=10)
+  Genotype: {'species': ['Velociraptor', 'Velociraptor'], 'color': ['Blue', 'Red'], 'strength': [9, 7]}
+💑 Breeding Alpha x Beta
+  Breed-mutate strength +2: 8 -> 10
+  Breed-mutate color =9: Red -> 9
+🌟 New dino Dino(name='Alpha_Beta_child', traits={'species': 'Velociraptor', 'color': 9, 'strength': 10}, food=10)
+  Genotype: {'species': ['Velociraptor', 'Velociraptor'], 'color': ['Red', 'Blue'], 'strength': [7, 9]}
+⏱ Ticking 5 time(s)
+  Spike.food -> 9
+  Alpha.food -> 6
+  Beta.food -> 8
+  Alpha_Beta_child.food -> 9
+  Beta_Alpha_child.food -> 9
+  Spike.food -> 8
+  Alpha.food -> 5
+  Beta.food -> 7
+  Alpha_Beta_child.food -> 8
+  Beta_Alpha_child.food -> 8
+  Spike.food -> 7
+  Alpha.food -> 4
+  Beta.food -> 6
+  Alpha_Beta_child.food -> 7
+  Beta_Alpha_child.food -> 7
+  Spike.food -> 6
+  Alpha.food -> 3
+  Beta.food -> 5
+  Alpha_Beta_child.food -> 6
+  Beta_Alpha_child.food -> 6
+  Spike.food -> 5
+  Alpha.food -> 2
+  Beta.food -> 4
+  Alpha_Beta_child.food -> 5
+  Beta_Alpha_child.food -> 5
+🛠 Feeding Spike with plants
+  strength: 13 -> 14
+  food: 5 -> 10
+✅ Program execution complete
+        </code>
+      </pre>
     </div>
 
     <!-- Right Section: Google Slides -->
